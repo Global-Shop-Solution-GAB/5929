@@ -1,0 +1,66 @@
+Program.Sub.Preflight.Start
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+'Uploaded to ARC 03/24/2020 by Critter Stumpp. ARC Project Number 5929
+
+
+'CREATED 5/5/19 WTW
+'Upload of Material Transaction Accounts		
+'Create Custom Hook
+'delimited format - TC,Loc,PL,D,D2,D3,D4,D5,D6,C,C2,C3,C4,C5,C6
+
+V.Local.slines.Declare(String)
+V.Local.sline.Declare(String)
+V.Local.ic.Declare(Long)
+V.Local.sFile.Declare(String)
+V.Local.sret.Declare(String)
+'browse for file to upload
+F.Intrinsic.UI.ShowOpenFileDialog("","","C:\",V.Local.sFile)
+F.Intrinsic.Control.If(V.Local.sFile,=,"***CANCEL***")
+	F.Intrinsic.Control.End
+
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.File.file2string(V.local.sFile,V.Local.slines)
+F.Intrinsic.String.Split(V.Local.slines,V.Ambient.NewLine,V.Local.slines)
+'ask to clear inventory accounts
+F.ODBC.Connection!conx.OpenConnection(V.Ambient.PDSN,V.Ambient.PUser,V.Ambient.PPass)
+F.Intrinsic.ui.Msgbox("Would you like to clear current material transaction accounts?","Clear Accounts",4,V.Local.sret)
+F.Intrinsic.Control.If(V.Local.sret,=,"6")
+	F.ODBC.Connection!conx.Execute("DELETE FROM INV_GL_ACCTS")
+F.Intrinsic.Control.EndIf
+
+'open record set for updating.
+F.ODBC.Connection!conx.OpenRecordsetRW("rst","SELECT * FROM INV_GL_ACCTS")
+F.Intrinsic.Control.ErrorResume(True)
+
+F.Intrinsic.Control.For(V.Local.ic,V.Local.slines.LBound,V.Local.slines.UBound,1)
+	F.Intrinsic.String.Split(V.Local.slines(v.Local.ic),V.Ambient.Tab,V.Local.sline)
+	F.ODBC.conx!rst.AddNew
+	F.ODBC.conx!rst.Set!CODE_TRANSACTION(V.Local.sline(0))
+	F.ODBC.conx!rst.Set!LOCATION(V.Local.sline(1))
+	F.ODBC.conx!rst.Set!PRODUCT_LINE(V.Local.sline(2))
+	F.ODBC.conx!rst.Set!DEBIT_ACCOUNT(V.Local.sline(3))
+	F.ODBC.conx!rst.Set!DEBIT_ACCOUNT2(V.Local.sline(4))
+	F.ODBC.conx!rst.Set!DEBIT_ACCOUNT3(V.Local.sline(5))
+	F.ODBC.conx!rst.Set!DEBIT_ACCOUNT4(V.Local.sline(6))
+	F.ODBC.conx!rst.Set!DEBIT_ACCOUNT5(V.Local.sline(7))
+	F.ODBC.conx!rst.Set!DEBIT_ACCOUNT6(V.Local.sline(8))
+	F.ODBC.conx!rst.Set!CREDIT_ACCOUNT(V.Local.sline(9))
+	F.ODBC.conx!rst.Set!CREDIT_ACCOUNT2(V.Local.sline(10))
+	F.ODBC.conx!rst.Set!CREDIT_ACCOUNT3(V.Local.sline(11))
+	F.ODBC.conx!rst.Set!CREDIT_ACCOUNT4(V.Local.sline(12))
+	F.ODBC.conx!rst.Set!CREDIT_ACCOUNT5(V.Local.sline(13))
+	F.ODBC.conx!rst.Set!CREDIT_ACCOUNT6(V.Local.sline(14))
+	F.ODBC.conx!rst.Set!FILLER("")
+	F.ODBC.conx!rst.Update
+F.Intrinsic.Control.Next(V.Local.ic)
+
+F.Intrinsic.ui.Msgbox("Process Complete")
+Program.Sub.Main.End
+
+Program.Sub.Comments.Start
+${$0$}$Inv_Mat_Tran_Accounts$}$WTW$}$5/5/2019 12:34:16 AM$}$False
+${$3$}$0$}$$}$0$}$-1$}$$}$12:00:00 AM$}$Inventory Material Transaction Accounting Upload
+Program.Sub.Comments.End
